@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import org.oleksiienko.orderResource.model.ListItem;
+import org.oleksiienko.orderResource.model.LineItem;
 import org.oleksiienko.orderResource.model.Order;
 import org.oleksiienko.orderResource.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +57,7 @@ public class OrderResource {
 
 
     	/*
-    	if(authenticatedUser.getName().equals(order.getCustomer().getLogin())
+    	if(authenticatedUser.getName().equals(order.getCustomer().getName())
     		{
     	*/
     		Order newOrder = orderService.add(order);    
@@ -66,13 +66,13 @@ public class OrderResource {
     			newOrder.setLink(getUriForSelf(uriInfo, order));
     			
     			//set link for profile
-    			newOrder.getCustomer().setLink(getUriForProfile(uriInfo, newOrder.getCustomer().getLogin()));
+    			newOrder.getCustomer().setLink(getUriForProfile(uriInfo, newOrder.getCustomer().getName()));
     			
     			// set links for products
-    			setUriForProducts(uriInfo, newOrder.getListItems());
+    			setUriForProducts(uriInfo, newOrder.getLineItems());
     	
     			//build response
-    			URI uri = uriInfo.getAbsolutePathBuilder().path(String.valueOf(newOrder.getOrderId())).build();
+    			URI uri = uriInfo.getAbsolutePathBuilder().path(String.valueOf(newOrder.getId())).build();
     			return Response.created(uri)
     					.entity(newOrder)
     					.build();
@@ -100,8 +100,8 @@ public class OrderResource {
     			for(Order order:orderList){
     				order.setLink(getUriForSelf(uriInfo, order));
     				//set link for profile
-    				order.getCustomer().setLink(getUriForProfile(uriInfo, order.getCustomer().getLogin()));
-    				setUriForProducts(uriInfo, order.getListItems());
+    				order.getCustomer().setLink(getUriForProfile(uriInfo, order.getCustomer().getName()));
+    				setUriForProducts(uriInfo, order.getLineItems());
     			}
     			
     			return Response.status(Status.FOUND)
@@ -130,9 +130,9 @@ public class OrderResource {
 			
 			order.setLink(getUriForSelf(uriInfo, order));
 			//set link for profile
-			order.getCustomer().setLink(getUriForProfile(uriInfo, order.getCustomer().getLogin()));
+			order.getCustomer().setLink(getUriForProfile(uriInfo, order.getCustomer().getName()));
 			
-			setUriForProducts(uriInfo, order.getListItems());
+			setUriForProducts(uriInfo, order.getLineItems());
 			
 			
 			
@@ -151,17 +151,17 @@ public class OrderResource {
     	//Check if customer from JSON is an AuthenticatedUser user 
     	
     	/*
-    	if(authenticatedUser.getName().equals(order.getCustomer().getLogin())
+    	if(authenticatedUser.getName().equals(order.getCustomer().getName())
     		{
     	*/
-    	
+    			order.setId(id);
     			Order editedOrder = orderService.edit(order);
     			if(editedOrder==null)
     				return Response.status(Status.BAD_REQUEST).build();
     			editedOrder.setLink(getUriForSelf(uriInfo, editedOrder));
-    			setUriForProducts(uriInfo, editedOrder.getListItems());
+    			setUriForProducts(uriInfo, editedOrder.getLineItems());
     			//set link for profile
-    			editedOrder.getCustomer().setLink(getUriForProfile(uriInfo,editedOrder.getCustomer().getLogin()));
+    			editedOrder.getCustomer().setLink(getUriForProfile(uriInfo,editedOrder.getCustomer().getName()));
     			
     			return Response.ok()
     					.entity(editedOrder)
@@ -175,16 +175,17 @@ public class OrderResource {
 	@DELETE
 	@Path("/{orderId}")
 	public Response deleteMessage(@PathParam("orderId") long id) {
-		//Check if customer from JSON is an AuthenticatedUser user 
+		//Check if customer is an AuthenticatedUser user 
 			
 		/*
 		 Order order = orderService.get(id);
 		 
-    	if(authenticatedUser.getName().equals(order.getCustomer().getLogin())
+    	if(authenticatedUser.getName().equals(order.getCustomer().getName())
     		{
 				Order deletedOrder = orderService.delete(order);
 		*/
 				Order deletedOrder = orderService.delete(id);
+			
 				if(deletedOrder!=null)
 					return Response.status(Status.BAD_REQUEST).build();
 				
@@ -199,8 +200,8 @@ public class OrderResource {
     private String getUriForSelf(UriInfo uriInfo, Order order){
     	String uri = uriInfo.getBaseUriBuilder()
     		.path(OrderResource.class)
-    		.path(Long.toString(order.getOrderId()))
-    		.queryParam("userName", order.getCustomer().getLogin())
+    		.path(Long.toString(order.getId()))
+    		.queryParam("userName", order.getCustomer().getName())
     		.build()
     		.toString();
     	return uri;
@@ -215,8 +216,10 @@ public class OrderResource {
     	return uri;
     }
     
-    private void setUriForProducts(UriInfo uriInfo, List<ListItem> productList){
-    	for(ListItem item:productList){
+    private void setUriForProducts(UriInfo uriInfo, List<LineItem> productList){
+/*
+    	for(LineItem item:productList){
+    		System.out.println(item.getProduct().getName());
     		String uri = uriInfo.getBaseUriBuilder()
     				.path(ProductResource.class)
     				.path(item.getProduct().getUserFriendlyName())
@@ -224,6 +227,6 @@ public class OrderResource {
     				.toString();
     		item.getProduct().setLink(uri);
     		
-    	}
+    	}*/
     }
 }
